@@ -2,8 +2,6 @@
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
-const cors = require('cors');
-const corsCustomization = require('./constants/cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
@@ -13,10 +11,8 @@ const router = require('./routes/index');
 const NotFoundError = require('./errors/not-found-err');
 
 const { PORT = 3000 } = process.env;
-
 const app = express();
 app.use(helmet());
-app.use(cors(corsCustomization));
 
 mongoose.connect('mongodb://localhost:27017/newsdb', {
   useNewUrlParser: true,
@@ -30,14 +26,16 @@ const limiter = rateLimit({
   max: 100, // допустимый лимит: 100 запросов с одного IP
 });
 
-
-
-
-
 app.use(limiter);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(requestLogger); // подключаем логгер запросов
+app.use(function(req, res, next) {
+  res.header('Access-Control-Allow-Origin', 'https://api.news-line.students.nomoreparties.xyz');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
+  next();
+});
 app.use('/', router);
 app.use(errorLogger); // подключаем логгер ошибок
 
@@ -58,6 +56,7 @@ app.use((err, req, res, next) => {
         : message,
     });
 });
+
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт приложение слушает
