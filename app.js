@@ -2,6 +2,7 @@
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
@@ -10,8 +11,23 @@ const { requestLogger, errorLogger } = require('./middlewares/logger');
 const router = require('./routes/index');
 const NotFoundError = require('./errors/not-found-err');
 
+const allowedAddress = ['https://api.news-line.students.nomoreparties.xyz', 'http://api.news-line.students.nomoreparties.xyz'];
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (allowedAddress.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+};
+
 const { PORT = 3000 } = process.env;
 const app = express();
+
+app.use(cors(corsOptions));
+
 app.use(helmet());
 
 mongoose.connect('mongodb://localhost:27017/newsdb', {
@@ -21,6 +37,10 @@ mongoose.connect('mongodb://localhost:27017/newsdb', {
   useUnifiedTopology: true,
 });
 
+
+
+
+
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 минут
   max: 100, // допустимый лимит: 100 запросов с одного IP
@@ -29,13 +49,11 @@ const limiter = rateLimit({
 app.use(limiter);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(requestLogger); // подключаем логгер запросов
-app.use(function(req, res, next) {
-  res.header('Access-Control-Allow-Origin', 'https://api.news-line.students.nomoreparties.xyz');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE');
-  next();
-});
+app.use(requestLogger);
+// подключаем логгер запросов
+
+
+
 app.use('/', router);
 app.use(errorLogger); // подключаем логгер ошибок
 
