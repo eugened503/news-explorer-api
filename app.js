@@ -2,6 +2,8 @@
 require('dotenv').config();
 const express = require('express');
 const helmet = require('helmet');
+const cors = require('cors');
+const corsCustomization = require('./constants/cors');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const { errors } = require('celebrate');
@@ -14,6 +16,7 @@ const { PORT = 3000 } = process.env;
 
 const app = express();
 app.use(helmet());
+app.use(cors(corsCustomization));
 
 mongoose.connect('mongodb://localhost:27017/newsdb', {
   useNewUrlParser: true,
@@ -26,6 +29,10 @@ const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 минут
   max: 100, // допустимый лимит: 100 запросов с одного IP
 });
+
+
+
+
 
 app.use(limiter);
 app.use(bodyParser.json());
