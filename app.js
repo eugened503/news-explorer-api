@@ -35,6 +35,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(requestLogger); // подключаем логгер запросов
 
+
+app.use('/', router);
+
 app.use(function(req, res, next) {
   const { origin } = req.headers; // Записываем в переменную origin соответствующий заголовок
 
@@ -44,7 +47,6 @@ app.use(function(req, res, next) {
   next();
 });
 
-app.use('/', router);
 app.use(errorLogger); // подключаем логгер ошибок
 
 app.use((req, res, next) => {
