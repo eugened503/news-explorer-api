@@ -9,13 +9,14 @@ const rateLimit = require('express-rate-limit');
 const { requestLogger, errorLogger } = require('./middlewares/logger');
 const router = require('./routes/index');
 const NotFoundError = require('./errors/not-found-err');
-const allowedCors = [
-  'https://api.news-line.students.nomoreparties.xyz',
-  'http://api.news-line.students.nomoreparties.xyz',
-  'localhost:3000'
-];
 const { PORT = 3000 } = process.env;
 const app = express();
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 app.use(helmet());
 
 mongoose.connect('mongodb://localhost:27017/newsdb', {
@@ -35,17 +36,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(requestLogger); // подключаем логгер запросов
 
-
 app.use('/', router);
-
-app.use(function(req, res, next) {
-  const { origin } = req.headers; // Записываем в переменную origin соответствующий заголовок
-
-  if (allowedCors.includes(origin)) { // Проверяем, что значение origin есть среди разрешённых доменов
-    res.header('Access-Control-Allow-Origin', origin);
-  }
-  next();
-});
 
 app.use(errorLogger); // подключаем логгер ошибок
 
