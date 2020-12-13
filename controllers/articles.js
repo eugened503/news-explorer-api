@@ -22,6 +22,7 @@ module.exports.createArticles = (req, res, next) => { //создаёт стат�
 
 module.exports.getAllArticles = (req, res, next) => { //возвращает все сохранённые пользователем статьи
   Article.find({})
+    .find({ owner: req.user._id })
     .then(article => res.status(200).send(article))
     .catch(next);
 };
